@@ -32,6 +32,12 @@ jobs:
           SONATYPE_CENTRAL_TOKEN: ${{ secrets.SONATYPE_CENTRAL_TOKEN }}
           MAVEN_GPG_PASSPHRASE: ${{ secrets.SONATYPE_CENTRAL_GPG_PASSPHRASE }}
 
+      - name: Upload coverage reports to Codecov
+        uses: codecov/codecov-action@v4.0.1
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          slug: Zeplinko-Org/java-commons-lang-ext
+
       - name: Upload JAR Artifacts
         uses: actions/upload-artifact@v4
         with:
