@@ -32,7 +32,7 @@
                 <extensions>true</extensions>
                 <configuration>
                     <autoPublish>false</autoPublish>
-                    <deploymentName>java-commons-lang-ext-${version}}</deploymentName>
+                    <deploymentName>java-commons-lang-ext-${version}</deploymentName>
                     <publishingServerId>central</publishingServerId>
                     <tokenAuth>true</tokenAuth>
                 </configuration>
