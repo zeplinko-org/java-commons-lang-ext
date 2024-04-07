@@ -1,0 +1,37 @@
+name: Publish package to the SonaType Central Repository
+on:
+  release:
+    types: [ created ]
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: "corretto"
+          java-version: "8"
+          cache: "maven"
+          server-id: central
+          server-username: SONATYPE_CENTRAL_USERNAME
+          server-password: SONATYPE_CENTRAL_TOKEN
+          gpg-private-key: ${{ secrets.SONATYPE_CENTRAL_GPG_PRIVATE_KEY }}
+          gpg-passphrase: MAVEN_GPG_PASSPHRASE
+
+      - name: Maven Build
+        run: ./mvnw deploy
+        env:
+          SONATYPE_CENTRAL_USERNAME: ${{ secrets.SONATYPE_CENTRAL_USERNAME }}
+          SONATYPE_CENTRAL_TOKEN: ${{ secrets.SONATYPE_CENTRAL_TOKEN }}
+          MAVEN_GPG_PASSPHRASE: ${{ secrets.SONATYPE_CENTRAL_GPG_PASSPHRASE }}
+
+      - name: Upload JAR Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: jar-files
+          path: |
+            target/central-publishing/central-bundle.zip
