@@ -2,8 +2,6 @@ package org.zeplinko.commons.lang.ext.core;
 
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Getter;
 
 import java.util.function.Function;
 
@@ -16,20 +14,11 @@ import java.util.function.Function;
  * @param <S> the type of the data returned on success
  * @param <T> the type of the error object returned on failure
  */
-@Getter
-@Builder(access = AccessLevel.PRIVATE)
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
 public class Result<S, T> {
-    /**
-     * The data of the operation if it succeeded. This field is null in case of
-     * failure.
-     */
+
     private final S data;
 
-    /**
-     * The error object of the operation if it failed. This field is null in case of
-     * success.
-     */
     private final T error;
 
     /**
@@ -41,7 +30,7 @@ public class Result<S, T> {
      * @return A {@code Result} instance representing success.
      */
     public static <S, T> Result<S, T> ok(S data) {
-        return Result.<S, T>builder().data(data).build();
+        return new Result<>(data, null);
     }
 
     /**
@@ -53,7 +42,27 @@ public class Result<S, T> {
      * @return A {@code Result} instance representing failure.
      */
     public static <S, T> Result<S, T> error(T error) {
-        return Result.<S, T>builder().error(error).build();
+        return new Result<>(null, error);
+    }
+
+    /**
+     * Returns the data of the operation if it succeeded; otherwise, returns the
+     * null value.
+     *
+     * @return The success data, or null if the result is a failure.
+     */
+    public S getData() {
+        return this.data;
+    }
+
+    /**
+     * Return the error object of the operation if it failed; otherwise, returns the
+     * null value.
+     *
+     * @return The error object, or null if the result is successful.
+     */
+    public T getError() {
+        return this.error;
     }
 
     /**
