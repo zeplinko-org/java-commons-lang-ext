@@ -6,7 +6,7 @@
 
     <groupId>org.zeplinko</groupId>
     <artifactId>commons-lang-ext</artifactId>
-    <version>1.0.0</version>
+    <version>1.1.0-BETA1</version>
 
     <properties>
         <maven.compiler.source>8</maven.compiler.source>
@@ -16,6 +16,12 @@
     </properties>
 
     <dependencies>
+        <dependency>
+            <groupId>jakarta.annotation</groupId>
+            <artifactId>jakarta.annotation-api</artifactId>
+            <version>2.1.1</version>
+        </dependency>
+
         <dependency>
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok</artifactId>
