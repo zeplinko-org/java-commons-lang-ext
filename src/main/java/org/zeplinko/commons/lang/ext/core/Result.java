@@ -152,10 +152,17 @@ public class Result<D, E> {
     /**
      * Maps the successful result to a new result using the provided value.
      *
+     * @deprecated Promotes wrong usage where the programmers might call this
+     *             overload passing the method call as argument. Instead, use the
+     *             overload
+     *             {@code org.zeplinko.commons.lang.ext.core.Result#map(java.util.function.Function)}
+     *             which takes the Function lambda as the argument.
+     *
      * @param value The value to map to the new result.
      * @param <U>   The type of the new result's success data.
      * @return A new {@code Result} instance.
      */
+    @Deprecated
     public <U> Result<U, E> map(U value) {
         return this.isFailure() ? Result.error(this.getError()) : Result.ok(value);
     }
@@ -176,10 +183,17 @@ public class Result<D, E> {
     /**
      * Returns a new result with the specified value if the result is a failure.
      *
+     * @deprecated Promotes wrong usage where the programmers might call this
+     *             overload passing the method call as argument. Instead, use the
+     *             overload
+     *             {@code org.zeplinko.commons.lang.ext.core.Result#otherwise(java.util.function.Function)}
+     *             which takes the Function lambda as the argument.
+     *
      * @param value The value to be contained in the new result if the current
      *              result is a failure.
      * @return A new {@code Result} instance.
      */
+    @Deprecated
     public Result<D, E> otherwise(D value) {
         return this.isFailure() ? Result.ok(value) : this;
     }
