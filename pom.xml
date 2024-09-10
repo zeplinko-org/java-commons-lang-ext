@@ -73,7 +73,6 @@
                 <configuration>
                     <sourceDirectory>${project.basedir}/src/main/java</sourceDirectory>
                     <addOutputDirectory>false</addOutputDirectory>
-                    <outputDirectory>${project.build.directory}/delombok</outputDirectory>
                 </configuration>
                 <executions>
                     <execution>
@@ -90,7 +89,7 @@
                 <artifactId>maven-javadoc-plugin</artifactId>
                 <version>3.6.3</version>
                 <configuration>
-                    <sourcepath>${project.build.directory}/delombok</sourcepath>
+                    <sourcepath>${project.build.directory}/generated-sources/delombok</sourcepath>
                 </configuration>
                 <executions>
                     <execution>
