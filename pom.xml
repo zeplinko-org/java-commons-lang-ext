@@ -6,7 +6,7 @@
 
     <groupId>org.zeplinko</groupId>
     <artifactId>commons-lang-ext</artifactId>
-    <version>1.1.0-BETA1</version>
+    <version>1.1.0</version>
 
     <properties>
         <maven.compiler.source>8</maven.compiler.source>
@@ -73,6 +73,7 @@
                 <configuration>
                     <sourceDirectory>${project.basedir}/src/main/java</sourceDirectory>
                     <addOutputDirectory>false</addOutputDirectory>
+                    <outputDirectory>${project.build.directory}/delombok</outputDirectory>
                 </configuration>
                 <executions>
                     <execution>
@@ -89,7 +90,7 @@
                 <artifactId>maven-javadoc-plugin</artifactId>
                 <version>3.6.3</version>
                 <configuration>
-                    <sourcepath>${project.build.directory}/generated-sources/delombok</sourcepath>
+                    <sourcepath>${project.build.directory}/delombok</sourcepath>
                 </configuration>
                 <executions>
                     <execution>
