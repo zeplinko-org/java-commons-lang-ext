@@ -30,13 +30,45 @@ public class Result<D, E> {
     /**
      * Creates a successful result containing the provided data.
      *
+     * @deprecated Instead use
+     *             {@code org.zeplinko.commons.lang.ext.core.Result#success(java.lang.Object)}
+     *
      * @param data The data to be contained in the result.
      * @param <D>  The type of the success data.
      * @param <E>  The type of the failure error object.
      * @return A {@code Result} instance representing success.
      */
+    @Deprecated
     public static <D, E> Result<D, E> ok(D data) {
+        return success(data);
+    }
+
+    /**
+     * Creates a successful result containing the provided data.
+     *
+     * @param data The data to be contained in the result.
+     * @param <D>  The type of the success data.
+     * @param <E>  The type of the failure error object.
+     * @return A {@code Result} instance representing success.
+     */
+    public static <D, E> Result<D, E> success(D data) {
         return new Result<>(data, null);
+    }
+
+    /**
+     * Creates a failed result containing the provided error.
+     *
+     * @deprecated Instead use
+     *             {@code org.zeplinko.commons.lang.ext.core.Result#failure(java.lang.Object)}
+     *
+     * @param error The error object to be contained in the result.
+     * @param <D>   The type of the success data.
+     * @param <E>   The type of the failure error object.
+     * @return A {@code Result} instance representing failure.
+     */
+    @Deprecated
+    public static <D, E> Result<D, E> error(@Nonnull E error) {
+        return failure(error);
     }
 
     /**
@@ -47,7 +79,7 @@ public class Result<D, E> {
      * @param <E>   The type of the failure error object.
      * @return A {@code Result} instance representing failure.
      */
-    public static <D, E> Result<D, E> error(@Nonnull E error) {
+    public static <D, E> Result<D, E> failure(@Nonnull E error) {
         Objects.requireNonNull(error);
         return new Result<>(null, error);
     }
@@ -177,7 +209,7 @@ public class Result<D, E> {
 
     public <U> Result<U, E> map(@Nonnull Function<? super D, ? extends U> mapper) {
         Objects.requireNonNull(mapper);
-        return this.isFailure() ? Result.error(this.getError()) : Result.ok(mapper.apply(this.getData()));
+        return this.isFailure() ? Result.failure(this.getError()) : Result.success(mapper.apply(this.getData()));
     }
 
     /**
@@ -207,7 +239,7 @@ public class Result<D, E> {
      */
     public Result<D, E> otherwise(@Nonnull Function<? super E, ? extends D> mapper) {
         Objects.requireNonNull(mapper);
-        return this.isFailure() ? Result.ok(mapper.apply(this.getError())) : this;
+        return this.isFailure() ? Result.success(mapper.apply(this.getError())) : this;
     }
 
     /**
@@ -237,7 +269,7 @@ public class Result<D, E> {
      * @return A new {@code Result} instance.
      */
     public <U> Result<U, E> flatMap(@Nonnull Function<? super D, ? extends Result<U, E>> mapper) {
-        return compose(mapper, Result::error);
+        return compose(mapper, Result::failure);
     }
 
     /**
@@ -249,7 +281,7 @@ public class Result<D, E> {
      * @return A new {@code Result} instance.
      */
     public <V> Result<D, V> recover(@Nonnull Function<? super E, ? extends Result<D, V>> mapper) {
-        return compose(Result::ok, mapper);
+        return compose(Result::success, mapper);
     }
 
     /**
@@ -269,15 +301,31 @@ public class Result<D, E> {
      * Taps the success data or error, applying the provided consumers without
      * modifying the result.
      *
+     * @deprecated Instead use
+     *             {@code org.zeplinko.commons.lang.ext.core.Result#onResult(java.util.function.Consumer, java.util.function.Consumer)}
+     *
      * @param successHandler The consumer to apply to the success data.
      * @param failureHandler The consumer to apply to the error.
      * @return The current {@code Result} instance.
      */
+    @Deprecated
     public Result<D, E> handle(Consumer<? super D> successHandler, Consumer<? super E> failureHandler) {
+        return onResult(successHandler, failureHandler);
+    }
+
+    /**
+     * Taps the success data or error, applying the provided consumers without
+     * modifying the result.
+     *
+     * @param dataConsumer  The consumer to apply to the success data.
+     * @param errorConsumer The consumer to apply to the error.
+     * @return The current {@code Result} instance.
+     */
+    public Result<D, E> onResult(Consumer<? super D> dataConsumer, Consumer<? super E> errorConsumer) {
         if (isFailure()) {
-            Optional.ofNullable(failureHandler).ifPresent(handler -> handler.accept(this.getError()));
+            Optional.ofNullable(errorConsumer).ifPresent(handler -> handler.accept(this.getError()));
         } else {
-            Optional.ofNullable(successHandler).ifPresent(handler -> handler.accept(this.getData()));
+            Optional.ofNullable(dataConsumer).ifPresent(handler -> handler.accept(this.getData()));
         }
         return this;
     }
@@ -285,11 +333,25 @@ public class Result<D, E> {
     /**
      * Taps the result, applying the provided consumer without modifying the result.
      *
+     * @deprecated Instead use
+     *             {@code org.zeplinko.commons.lang.ext.core.Result#onResult(java.util.function.Consumer)}
+     *
      * @param resultHandler The consumer to apply to the result.
      * @return The current {@code Result} instance.
      */
+    @Deprecated
     public Result<D, E> handleResult(Consumer<? super Result<D, E>> resultHandler) {
-        Optional.ofNullable(resultHandler).ifPresent(it -> it.accept(this));
+        return onResult(resultHandler);
+    }
+
+    /**
+     * Taps the result, applying the provided consumer without modifying the result.
+     *
+     * @param resultConsumer The consumer to apply to the result.
+     * @return The current {@code Result} instance.
+     */
+    public Result<D, E> onResult(Consumer<? super Result<D, E>> resultConsumer) {
+        Optional.ofNullable(resultConsumer).ifPresent(it -> it.accept(this));
         return this;
     }
 
@@ -297,20 +359,49 @@ public class Result<D, E> {
      * Taps the success data, applying the provided consumer without modifying the
      * result.
      *
+     * @deprecated Instead use
+     *             {@code org.zeplinko.commons.lang.ext.core.Result#onSuccess(java.util.function.Consumer)}
+     *
      * @param successHandler The consumer to apply to the success data.
      * @return The current {@code Result} instance.
      */
+    @Deprecated
     public Result<D, E> handleSuccess(Consumer<? super D> successHandler) {
-        return handle(successHandler, null);
+        return onSuccess(successHandler);
+    }
+
+    /**
+     * Taps the success data, applying the provided consumer without modifying the
+     * result.
+     *
+     * @param dataConsumer The consumer to apply to the success data.
+     * @return The current {@code Result} instance.
+     */
+    public Result<D, E> onSuccess(Consumer<? super D> dataConsumer) {
+        return onResult(dataConsumer, null);
     }
 
     /**
      * Taps the error, applying the provided consumer without modifying the result.
      *
+     * @deprecated Instead use
+     *             {@code org.zeplinko.commons.lang.ext.core.Result#onFailure(java.util.function.Consumer)}
+     *
      * @param failureHandler The consumer to apply to the error.
      * @return The current {@code Result} instance.
      */
+    @Deprecated
     public Result<D, E> handleFailure(Consumer<? super E> failureHandler) {
-        return handle(null, failureHandler);
+        return onFailure(failureHandler);
+    }
+
+    /**
+     * Taps the error, applying the provided consumer without modifying the result.
+     *
+     * @param errorConsumer The consumer to apply to the error.
+     * @return The current {@code Result} instance.
+     */
+    public Result<D, E> onFailure(Consumer<? super E> errorConsumer) {
+        return onResult(null, errorConsumer);
     }
 }
