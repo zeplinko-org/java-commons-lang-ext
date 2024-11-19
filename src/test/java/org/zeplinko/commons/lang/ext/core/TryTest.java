@@ -1,9 +1,11 @@
 package org.zeplinko.commons.lang.ext.core;
 
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.concurrent.Callable;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -48,7 +50,7 @@ class TryTest {
     }
 
     @Test
-    void test_whenToIsCalledWithNullCallablae_thenExceptionIsThrown() {
+    void test_whenToIsCalledWithNullCallable_thenExceptionIsThrown() {
         @SuppressWarnings("DataFlowIssue")
         NullPointerException nullPointerException = assertThrows(NullPointerException.class, () -> Try.to(null));
 
@@ -88,6 +90,84 @@ class TryTest {
 
         assertTrue(result.isFailure());
         assertSame(expectedError, result.getError());
+    }
+
+    @Test
+    void test_givenSuccessTry_whenOrElse_thenOriginalValueShouldBeReturned() {
+        Try<Integer> integerTry = Try.success(10);
+        int value = integerTry.orElse(5);
+        Assertions.assertEquals(10, value);
+    }
+
+    @Test
+    void test_givenFailureTry_whenOrElse_thenNewValueShouldBeReturned() {
+        Try<Integer> failure = Try.failure(new RuntimeException("Error occurred"));
+        int value = failure.orElse(5);
+        Assertions.assertEquals(5, value);
+    }
+
+    @Test
+    void test_whenOrElseGetSupplierCalledOnSuccessTry_thenSupplierIsNotCalled() {
+        Try<Integer> success = Try.success(10);
+        int value = success.orElseGet(() -> 5);
+        Assertions.assertEquals(10, value);
+    }
+
+    @Test
+    void test_whenOrElseGetSupplierCalledOnFailureTry_thenSupplierIsNotCalled() {
+        Try<Integer> failure = Try.failure(new RuntimeException("Error occurred"));
+        int value = failure.orElseGet(() -> 5);
+        Assertions.assertEquals(5, value);
+    }
+
+    @Test
+    void testOrElseGetWithSuccessTry() {
+        Try<Integer> success = Try.success(10);
+        int value = success.orElseGet(error -> 5);
+        Assertions.assertEquals(10, value);
+    }
+
+    @Test
+    void testOrElseGetWithFailureTry() {
+        Try<Integer> failure = Try.failure(new RuntimeException("Error occurred"));
+        int value = failure.orElseGet(error -> 5);
+        Assertions.assertEquals(5, value);
+    }
+
+    @Test
+    void testOrElseThrowWithSuccessTry() throws Exception {
+        Try<Integer> success = Try.success(10);
+        int value = success.orElseThrow(Exception::new);
+        Assertions.assertEquals(10, value);
+    }
+
+    @Test
+    void testOrElseThrowWithFailureTry() {
+        Try<Integer> failure = Try.failure(new RuntimeException("Error occurred"));
+        Exception exception = Assertions.assertThrows(
+                Exception.class,
+                () -> failure.orElseThrow(e -> new Exception(e.getMessage()))
+        );
+        Assertions.assertEquals("Error occurred", exception.getMessage());
+    }
+
+    @Test
+    void test_givenSuccess_whenToOptionalCalled_thenReturnsOptionalWithSameValue() {
+        Try<Integer> success = Try.success(10);
+
+        Optional<Integer> optional = success.toOptional();
+        Assertions.assertNotNull(optional);
+        Assertions.assertTrue(optional.isPresent());
+        Assertions.assertSame(success.getData(), optional.get());
+    }
+
+    @Test
+    void test_givenFailure_whenToOptionalCalled_thenReturnsEmptyOptional() {
+        Try<Integer> failure = Try.failure(new RuntimeException("Error occurred"));
+
+        Optional<Integer> optional = failure.toOptional();
+        Assertions.assertNotNull(optional);
+        Assertions.assertFalse(optional.isPresent());
     }
 
     @Test

@@ -60,6 +60,9 @@ public class Try<T> extends AbstractResult<T, Exception> {
         }
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public boolean isFailure() {
         return this.getError() != null;

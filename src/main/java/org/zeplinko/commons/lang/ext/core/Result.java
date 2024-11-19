@@ -80,6 +80,9 @@ public class Result<D, E> extends AbstractResult<D, E> {
         return new Result<>(null, error);
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public boolean isFailure() {
         return this.getError() != null;
