@@ -135,9 +135,9 @@ class TryTest {
     }
 
     @Test
-    void testOrElseThrowWithSuccessTry() throws Exception {
+    void testOrElseThrowWithSuccessTry() {
         Try<Integer> success = Try.success(10);
-        int value = success.orElseThrow(Exception::new);
+        int value = assertDoesNotThrow(() -> success.orElseThrow(Exception::new));
         Assertions.assertEquals(10, value);
     }
 
@@ -147,6 +147,23 @@ class TryTest {
         Exception exception = Assertions.assertThrows(
                 Exception.class,
                 () -> failure.orElseThrow(e -> new Exception(e.getMessage()))
+        );
+        Assertions.assertEquals("Error occurred", exception.getMessage());
+    }
+
+    @Test
+    void test_givenSuccess_whenOrElseThrowCalled_thenReturnValue() {
+        Try<Integer> success = Try.success(10);
+        int value = assertDoesNotThrow(() -> success.orElseThrow());
+        Assertions.assertEquals(10, value);
+    }
+
+    @Test
+    void test_givenFailure_whenOrElseThrowCalled_thenThrowException() {
+        Try<Integer> failure = Try.failure(new RuntimeException("Error occurred"));
+        Exception exception = Assertions.assertThrows(
+                RuntimeException.class,
+                failure::orElseThrow
         );
         Assertions.assertEquals("Error occurred", exception.getMessage());
     }

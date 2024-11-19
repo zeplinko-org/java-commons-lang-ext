@@ -69,6 +69,22 @@ public class Try<T> extends AbstractResult<T, Exception> {
     }
 
     /**
+     * Returns the data if the Try is successful; otherwise, throws the exception
+     * contained within the Try construct
+     *
+     * @return The success data.
+     * @throws Exception if the Try is a failure, the exception thrown is contained
+     *                   within the Try
+     */
+    @SuppressWarnings("java:S112")
+    public T orElseThrow() throws Exception {
+        if (this.isFailure()) {
+            throw getError();
+        }
+        return this.getData();
+    }
+
+    /**
      * Maps the success value of this {@code Try} using the provided mapping
      * function. If this {@code Try} is a failure, the same failure is returned.
      *
