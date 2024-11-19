@@ -3,6 +3,8 @@ package org.zeplinko.commons.lang.ext.core;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
+import java.util.Optional;
+
 class ResultTest {
 
     @Test
@@ -538,5 +540,24 @@ class ResultTest {
         Assertions.assertNotNull(returnedResult);
         Assertions.assertSame(result, returnedResult);
         Assertions.assertTrue(handlerCalled[0]);
+    }
+
+    @Test
+    void test_givenSuccess_whenToOptionalCalled_thenReturnsOptionalWithSameValue() {
+        Result<Integer, String> success = Result.success(10);
+
+        Optional<Integer> optional = success.toOptional();
+        Assertions.assertNotNull(optional);
+        Assertions.assertTrue(optional.isPresent());
+        Assertions.assertSame(success.getData(), optional.get());
+    }
+
+    @Test
+    void test_givenFailure_whenToOptionalCalled_thenReturnsEmptyOptional() {
+        Result<Integer, String> failure = Result.failure("error");
+
+        Optional<Integer> optional = failure.toOptional();
+        Assertions.assertNotNull(optional);
+        Assertions.assertFalse(optional.isPresent());
     }
 }
