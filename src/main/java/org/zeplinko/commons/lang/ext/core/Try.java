@@ -8,7 +8,7 @@ import java.util.concurrent.Callable;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
-public class Try<T> extends AbstractResult<T, Exception> {
+public class Try<T> extends AbstractOutcome<T, Exception> {
 
     private Try(T data, Exception error) {
         super(data, error);

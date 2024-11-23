@@ -17,7 +17,7 @@ import java.util.function.Function;
  * @param <E> the type of the error object returned on failure
  */
 @SuppressWarnings("LombokGetterMayBeUsed")
-public class Result<D, E> extends AbstractResult<D, E> {
+public class Result<D, E> extends AbstractOutcome<D, E> {
 
     private Result(D data, E error) {
         super(data, error);

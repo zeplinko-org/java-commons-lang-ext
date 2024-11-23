@@ -8,12 +8,12 @@ import java.util.function.Function;
 import java.util.function.Supplier;
 
 @SuppressWarnings("LombokGetterMayBeUsed")
-public abstract class AbstractResult<D, E> {
+public abstract class AbstractOutcome<D, E> {
     private final D data;
 
     private final E error;
 
-    protected AbstractResult(D data, E error) {
+    protected AbstractOutcome(D data, E error) {
         this.data = data;
         this.error = error;
     }
@@ -22,7 +22,7 @@ public abstract class AbstractResult<D, E> {
      * Returns the data of the operation if it succeeded; otherwise, returns the
      * null value.
      *
-     * @return The success data, or null if the AbstractResult is a failure.
+     * @return The success data, or null if the AbstractOutcome is a failure.
      */
     public D getData() {
         return data;
@@ -32,16 +32,16 @@ public abstract class AbstractResult<D, E> {
      * Return the error object of the operation if it failed; otherwise, returns the
      * null value.
      *
-     * @return The error object, or null if the AbstractResult is successful.
+     * @return The error object, or null if the AbstractOutcome is successful.
      */
     public E getError() {
         return error;
     }
 
     /**
-     * Checks if the AbstractResult represents success.
+     * Checks if the AbstractOutcome represents success.
      *
-     * @return {@code true} if the AbstractResult is successful, {@code false}
+     * @return {@code true} if the AbstractOutcome is successful, {@code false}
      *         otherwise.
      */
     public boolean isSuccess() {
@@ -49,19 +49,19 @@ public abstract class AbstractResult<D, E> {
     }
 
     /**
-     * Checks if the AbstractResult represents failure.
+     * Checks if the AbstractOutcome represents failure.
      *
-     * @return {@code true} if the AbstractResult is a failure, {@code false}
+     * @return {@code true} if the AbstractOutcome is a failure, {@code false}
      *         otherwise.
      */
     public abstract boolean isFailure();
 
     /**
-     * Returns the data if the AbstractResult is successful; otherwise, returns the
+     * Returns the data if the AbstractOutcome is successful; otherwise, returns the
      * other specified value.
      *
-     * @param other The value to return if the AbstractResult is a failure.
-     * @return The success data, or {@code other} if the AbstractResult is a
+     * @param other The value to return if the AbstractOutcome is a failure.
+     * @return The success data, or {@code other} if the AbstractOutcome is a
      *         failure.
      */
     public D orElse(D other) {
@@ -69,13 +69,13 @@ public abstract class AbstractResult<D, E> {
     }
 
     /**
-     * Returns the data if the AbstractResult is successful; otherwise, applies the
+     * Returns the data if the AbstractOutcome is successful; otherwise, applies the
      * provided supplier to get the other value.
      *
      * @param otherSupplier The supplier function to provide the other value if the
-     *                      AbstractResult is a failure.
+     *                      AbstractOutcome is a failure.
      * @return The success data, or the value provided by {@code otherSupplier} if
-     *         the AbstractResult is a failure.
+     *         the AbstractOutcome is a failure.
      */
     public D orElseGet(@Nonnull Supplier<? extends D> otherSupplier) {
         Objects.requireNonNull(otherSupplier);
@@ -83,12 +83,12 @@ public abstract class AbstractResult<D, E> {
     }
 
     /**
-     * Returns the data if the AbstractResult is successful; otherwise, applies the
-     * provided function to the error and returns the AbstractResult.
+     * Returns the data if the AbstractOutcome is successful; otherwise, applies the
+     * provided function to the error and returns the AbstractOutcome.
      *
-     * @param otherFunction The function to apply to the error if the AbstractResult
-     *                      is a failure.
-     * @return The success data, or the AbstractResult of applying
+     * @param otherFunction The function to apply to the error if the
+     *                      AbstractOutcome is a failure.
+     * @return The success data, or the AbstractOutcome of applying
      *         {@code otherFunction} to the error.
      */
     public D orElseGet(@Nonnull Function<? super E, ? extends D> otherFunction) {
@@ -97,15 +97,15 @@ public abstract class AbstractResult<D, E> {
     }
 
     /**
-     * Returns the data if the AbstractResult is successful; otherwise, throws the
+     * Returns the data if the AbstractOutcome is successful; otherwise, throws the
      * exception provided by the function applied to the error.
      *
      * @param exceptionFunction The function to apply to the error to generate an
      *                          exception.
      * @param <X>               The type of the exception to be thrown if the
-     *                          AbstractResult is a failure.
+     *                          AbstractOutcome is a failure.
      * @return The success data.
-     * @throws X if the AbstractResult is a failure, the exception generated by
+     * @throws X if the AbstractOutcome is a failure, the exception generated by
      *           applying {@code exceptionFunction} to the error.
      */
     public <X extends Throwable> D orElseThrow(@Nonnull Function<? super E, ? extends X> exceptionFunction) throws X {
@@ -117,10 +117,10 @@ public abstract class AbstractResult<D, E> {
     }
 
     /**
-     * Returns the Optional with value if the AbstractResult is successful;
+     * Returns the Optional with value if the AbstractOutcome is successful;
      * otherwise, returns the Empty Optional.
      *
-     * @return Optional with value if the AbstractResult is successful, otherwise
+     * @return Optional with value if the AbstractOutcome is successful, otherwise
      *         Empty Optional
      */
     public Optional<D> toOptional() {
