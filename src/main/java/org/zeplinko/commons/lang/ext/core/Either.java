@@ -1,36 +1,35 @@
 package org.zeplinko.commons.lang.ext.core;
 
-import jakarta.annotation.Nonnull;
-import lombok.AccessLevel;
-import lombok.AllArgsConstructor;
-
-import java.util.Objects;
 import java.util.function.Function;
 
 @SuppressWarnings("LombokGetterMayBeUsed")
-@AllArgsConstructor(access = AccessLevel.PRIVATE)
 public class Either<L, R> {
 
-    private final L left;
+    private final Container<L> left;
 
-    private final R right;
+    private final Container<R> right;
 
-    public static <L, R> Either<L, R> left(@Nonnull L left) {
-        Objects.requireNonNull(left);
-        return new Either<>(left, null);
+    private Either(Container<L> left, Container<R> right) {
+        this.left = left;
+        this.right = right;
     }
 
-    public static <L, R> Either<L, R> right(@Nonnull R right) {
-        Objects.requireNonNull(right);
-        return new Either<>(null, right);
+    public static <L, R> Either<L, R> left(L left) {
+        Container<L> leftContainer = new Container<>(left);
+        return new Either<>(leftContainer, null);
+    }
+
+    public static <L, R> Either<L, R> right(R right) {
+        Container<R> rightContainer = new Container<>(right);
+        return new Either<>(null, rightContainer);
     }
 
     public L getLeft() {
-        return this.left;
+        return this.left.getValue();
     }
 
     public R getRight() {
-        return this.right;
+        return this.right.getValue();
     }
 
     public boolean isLeft() {
@@ -42,7 +41,7 @@ public class Either<L, R> {
     }
 
     public Either<R, L> swap() {
-        return isLeft() ? Either.right(this.left) : Either.left(this.right);
+        return isLeft() ? Either.right(this.left.getValue()) : Either.left(this.right.getValue());
     }
 
     public <T, U> Either<T, U> map(
@@ -50,9 +49,9 @@ public class Either<L, R> {
             Function<? super R, ? extends U> rightMapper
     ) {
         if (isLeft()) {
-            return Either.left(leftMapper.apply(this.left));
+            return Either.left(leftMapper.apply(getLeft()));
         } else {
-            return Either.right(rightMapper.apply(this.right));
+            return Either.right(rightMapper.apply(getRight()));
         }
     }
 
@@ -61,9 +60,9 @@ public class Either<L, R> {
             Function<? super R, Either<T, U>> rightMapper
     ) {
         if (isLeft()) {
-            return leftMapper.apply(this.left);
+            return leftMapper.apply(getLeft());
         } else {
-            return rightMapper.apply(this.right);
+            return rightMapper.apply(getRight());
         }
     }
 
