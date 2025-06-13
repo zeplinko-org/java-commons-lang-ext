@@ -11,7 +11,7 @@ public class Container<T> {
     /**
      * The stored value of type {@code T}.
      */
-    private final T value;
+    protected T value;
 
     /**
      * Constructs a new {@code Container} with the specified value.
