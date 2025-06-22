@@ -3,9 +3,9 @@ name: "Build PR"
 on:
   pull_request:
     branches:
-      - main
       - beta
       - develop
+      - release
 
 jobs:
   build-pr:
@@ -26,10 +26,10 @@ jobs:
         run: ./mvnw clean package
 
       - name: Upload coverage reports to Codecov
-        uses: codecov/codecov-action@v4.0.1
+        uses: codecov/codecov-action@v5
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
-          slug: Zeplinko-Org/java-commons-lang-ext
+          slug: Zeplinko/java-commons-lang-ext
 
       - name: Upload JAR Artifacts
         uses: actions/upload-artifact@v4
