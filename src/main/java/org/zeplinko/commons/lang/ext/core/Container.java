@@ -31,4 +31,15 @@ public class Container<T> {
     public T getValue() {
         return this.value;
     }
+
+    /**
+     * Static factory method to create a {@code Container} instance.
+     *
+     * @param value The value to be stored in the container.
+     * @param <T>   The type of the value.
+     * @return A new {@code Container} containing the given value.
+     */
+    public static <T> Container<T> of(T value) {
+        return new Container<>(value);
+    }
 }

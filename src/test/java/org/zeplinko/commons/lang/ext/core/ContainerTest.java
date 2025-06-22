@@ -37,6 +37,20 @@ class ContainerTest {
         assertSame(customObject, container.getValue());
     }
 
+    @Test
+    void test_givenNonNullValue_whenConstructedUsingFactoryMethodOf_thenCorrectValueIsStored() {
+        Container<String> container = new Container<>("test-value");
+
+        assertEquals("test-value", container.getValue());
+    }
+
+    @Test
+    void test_givenNullValue_whenConstructedUsingFactoryMethodOf_thenNullIsStored() {
+        Container<String> container = new Container<>(null);
+
+        assertNull(container.getValue());
+    }
+
     static class MyCustomClass {
         private final String value;
 

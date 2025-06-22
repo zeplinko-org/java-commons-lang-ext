@@ -37,4 +37,15 @@ public class MutableContainer<T> extends Container<T> {
     public void setValue(T value) {
         super.value = value;
     }
+
+    /**
+     * Static factory method to create a {@code MutableContainer} instance.
+     *
+     * @param value the initial value to store (may be {@code null})
+     * @param <T>   the type of the value
+     * @return a new {@code MutableContainer} containing the given value
+     */
+    public static <T> MutableContainer<T> of(T value) {
+        return new MutableContainer<>(value);
+    }
 }

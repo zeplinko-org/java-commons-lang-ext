@@ -40,4 +40,18 @@ class MutableContainerTest {
         assertNull(container.getValue());
     }
 
+    @Test
+    void test_givenNonNullValue_whenConstructedUsingFactoryMethodOf_thenCorrectValueIsStored() {
+        MutableContainer<String> container = MutableContainer.of("test-value");
+
+        assertEquals("test-value", container.getValue());
+    }
+
+    @Test
+    void test_givenNullValue_whenConstructedUsingFactoryMethodOf_thenNullIsStored() {
+        MutableContainer<String> container = MutableContainer.of(null);
+
+        assertNull(container.getValue());
+    }
+
 }
