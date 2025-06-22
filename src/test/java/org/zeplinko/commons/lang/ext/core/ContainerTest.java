@@ -39,14 +39,14 @@ class ContainerTest {
 
     @Test
     void test_givenNonNullValue_whenConstructedUsingFactoryMethodOf_thenCorrectValueIsStored() {
-        Container<String> container = new Container<>("test-value");
+        Container<String> container = Container.of("test-value");
 
         assertEquals("test-value", container.getValue());
     }
 
     @Test
     void test_givenNullValue_whenConstructedUsingFactoryMethodOf_thenNullIsStored() {
-        Container<String> container = new Container<>(null);
+        Container<String> container = Container.of(null);
 
         assertNull(container.getValue());
     }
