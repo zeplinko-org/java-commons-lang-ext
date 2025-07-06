@@ -29,6 +29,8 @@ import lombok.NoArgsConstructor;
  * </p>
  *
  * @see Void
+ *
+ * @author Shivam&nbsp;Nagpal
  */
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public final class Empty {

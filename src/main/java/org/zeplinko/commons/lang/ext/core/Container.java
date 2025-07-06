@@ -3,6 +3,8 @@ package org.zeplinko.commons.lang.ext.core;
 /**
  * A simple container class that holds a single immutable value.
  *
+ * @author Astha&nbsp;Singh
+ *
  * @param <T> The type of the value stored in the container.
  */
 @SuppressWarnings("LombokGetterMayBeUsed")

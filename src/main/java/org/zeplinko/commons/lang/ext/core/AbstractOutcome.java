@@ -7,6 +7,40 @@ import java.util.Optional;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
+/**
+ * Represents the result of an operation that can either <em>succeed</em> with a
+ * value of type {@code D} or <em>fail</em> with an error of type {@code E}.
+ * <p>
+ * This abstract base class is deliberately kept minimal so that concrete
+ * subclasses (for example, {@link Result} and {@link Try}) can decide which of
+ * the two payload fields—{@code data} on success or {@code error} on failure—is
+ * actually present. Client code should rely on the inquiry methods
+ * ({@link #isSuccess()} and {@link #isFailure()}) to distinguish the two cases,
+ * and then use the convenience helpers such as {@link #orElse(Object)},
+ * {@link #orElseGet(java.util.function.Supplier)},
+ * {@link #orElseThrow(java.util.function.Function)} or {@link #toOptional()} to
+ * extract the desired value in a null-safe and expressive fashion.
+ * </p>
+ *
+ * <h2>Immutability &amp; Thread-safety</h2> State is held in {@code final}
+ * fields and never mutated after construction, rendering instances of this
+ * class inherently immutable and safely shareable between threads
+ * <em>provided</em> the contained {@code D} and {@code E} objects themselves
+ * are effectively immutable.
+ *
+ * @see #isSuccess()
+ * @see #isFailure()
+ * @see #orElse(Object)
+ * @see #orElseGet(java.util.function.Supplier)
+ * @see #orElseThrow(java.util.function.Function)
+ * @see #toOptional()
+ *
+ * @author Shivam&nbsp;Nagpal
+ *
+ * @param <D> the type of the data returned when the outcome is successful
+ * @param <E> the type of the error carried when the outcome is a failure
+ *
+ */
 @SuppressWarnings("LombokGetterMayBeUsed")
 public abstract class AbstractOutcome<D, E> {
     private final D data;

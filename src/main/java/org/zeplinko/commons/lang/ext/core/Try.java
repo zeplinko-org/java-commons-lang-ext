@@ -8,6 +8,68 @@ import java.util.concurrent.Callable;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
+/**
+ * An immutable container that captures the <em>successful</em> result of a
+ * computation or the <em>exception</em> it threw, allowing users to deal with
+ * errors as ordinary values instead of relying on the Java {@code try / catch}
+ * statement.<br>
+ * <p>
+ * Conceptually this type is the Java-centric equivalent of <a href=
+ * "https://scala-lang.org/api/2.13.13/scala/util/Try.html">Scala&nbsp;{@code Try}</a>:
+ * </p>
+ *
+ * <ul>
+ * <li>If the computation succeeds, a {@linkplain #success(Object) success-case}
+ * instance carries the returned value.</li>
+ * <li>If it throws, a {@linkplain #failure(Exception) failure-case} instance
+ * carries the thrown {@link Exception} (checked <strong>or</strong>
+ * unchecked).</li>
+ * </ul>
+ *
+ * <h2>Relationship to {@code AbstractOutcome} &amp; {@code Result}</h2>
+ * {@code Try} specialises the more general {@link AbstractOutcome} by
+ * hard-coding the <em>error</em> side to {@code Exception}. If you need to
+ * model domain-specific error types instead, use {@link Result}{@code <D,E>}
+ * where {@code E} is not limited to {@code Exception}.
+ *
+ * <h2>Key Features</h2>
+ * <table summary="key combinators in Try">
+ * <tr>
+ * <th>Method</th>
+ * <th>Purpose</th>
+ * </tr>
+ * <tr>
+ * <td>{@link #to}</td>
+ * <td>Wraps any <strong>synchronous</strong> code block and captures its
+ * success or the exception it throws.</td>
+ * </tr>
+ * <tr>
+ * <td>{@link #map}</td>
+ * <td>Transforms the success value; propagates failure unchanged.</td>
+ * </tr>
+ * <tr>
+ * <td>{@link #flatMap}</td>
+ * <td>Chains multiple computations that themselves return {@code Try}.</td>
+ * </tr>
+ * <tr>
+ * <td>{@link #recover}</td>
+ * <td>Turns a failure into a success (fallback or compensation logic).</td>
+ * </tr>
+ * <tr>
+ * <td>{@link #orElseThrow}</td>
+ * <td>Escapes back into the imperative world, re-throwing if necessary.</td>
+ * </tr>
+ * </table>
+ *
+ * <h2>Thread-safety &amp; Immutability</h2> State is stored in {@code final}
+ * fields and never modified after construction, making every {@code Try}
+ * instance inherently thread-safe as long as the wrapped value is itself
+ * thread-safe.
+ *
+ * @author Shivam&nbsp;Nagpal
+ *
+ * @param <T> the type of the successful value
+ */
 public class Try<T> extends AbstractOutcome<T, Exception> {
 
     private Try(T data, Exception error) {

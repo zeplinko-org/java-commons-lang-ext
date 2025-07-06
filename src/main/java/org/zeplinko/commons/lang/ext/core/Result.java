@@ -13,6 +13,8 @@ import java.util.function.Function;
  * (on failure), but not both. Use static factory methods {@code ok} and
  * {@code error} to create instances of this class.
  *
+ * @author Shivam&nbsp;Nagpal
+ *
  * @param <D> the type of the data returned on success
  * @param <E> the type of the error object returned on failure
  */

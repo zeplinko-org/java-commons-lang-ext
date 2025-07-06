@@ -12,8 +12,8 @@ import java.util.UUID;
  * An <strong>immutable, URL-safe</strong> alternative to {@link java.util.UUID}
  * that writes the 128-bit value in Base 64 rather than hexadecimal. A canonical
  * {@code UUID64} is always exactly <em>22&nbsp;characters</em> long and
- * consists only of the URL-safe alphabet {@code [A-Za-z0-9_-]} (no “+”, “/”, or
- * “=” padding).
+ * consists only of the URL-safe alphabet {@code [A-Za-z0-9_-]} (no '+', '/', or
+ * '=' padding).
  * </p>
  *
  * <h2>Motivation</h2>
@@ -49,9 +49,11 @@ import java.util.UUID;
  *
  * <p>
  * <strong>Implementation note:</strong> 22 characters arise from encoding 16
- * bytes (128 bits) with 6-bit Base 64 symbols and omitting the two trailing “=”
+ * bytes (128 bits) with 6-bit Base 64 symbols and omitting the two trailing '='
  * padding bytes (16 × 8 / 6 = 21 ⅓ → 22 symbols).
  * </p>
+ *
+ * @author Shivam&nbsp;Nagpal
  */
 @Preview
 public class UUID64 {

@@ -1,21 +1,23 @@
-package org.zeplinko.commons.lang.ext.core;
+package org.zeplinko.commons.lang.ext.util;
 
 import jakarta.annotation.Nonnull;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
+import org.zeplinko.commons.lang.ext.annotations.Preview;
+import org.zeplinko.commons.lang.ext.core.Result;
 
 import java.util.Objects;
 import java.util.concurrent.Callable;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Predicate;
 
-import static org.zeplinko.commons.lang.ext.core.Retryable.Outcome.TerminationReason.*;
+import static org.zeplinko.commons.lang.ext.util.Retryable.Outcome.TerminationReason.*;
 
 /**
  * Executes a {@link Callable} with retry semantics.
  * <p>
  * A {@code Retryable} encapsulates a task that may be re-executed in the event
- * of failure or validation rejection. Clients configure the behaviour fluently
+ * of failure or validation rejection. Clients configure the behavior fluently
  * using:
  * </p>
  * <ul>
@@ -42,8 +44,11 @@ import static org.zeplinko.commons.lang.ext.core.Retryable.Outcome.TerminationRe
  * {@code Retryable} per thread.
  * </p>
  *
+ * @author A&nbsp;Anand
+ *
  * @param <R> the type of the successful result returned by the task
  */
+@Preview
 public final class Retryable<R> implements Callable<Retryable.Outcome<R>> {
 
     private final Callable<R> retryableTask;
@@ -52,7 +57,7 @@ public final class Retryable<R> implements Callable<Retryable.Outcome<R>> {
 
     private Predicate<? super Exception> exceptionPredicate = e -> false; // Do not retry on exceptions by default
 
-    private Predicate<? super Exception> noRetryOnFailure = e -> false; // By default there are no no-retry
+    private Predicate<? super Exception> noRetryOnFailure = e -> false; // By default, there is no no-retry
                                                                         // exceptions
 
     private int maxRetries = 0;
@@ -136,7 +141,7 @@ public final class Retryable<R> implements Callable<Retryable.Outcome<R>> {
 
     /**
      * Sets how many times the operation should be retried after the initial
-     * attempt. A negative value is normalised to {@code 0}. No hard upper bound is
+     * attempt. A negative value is normalized to {@code 0}. No hard upper bound is
      * enforced—use care when supplying very large numbers as they may lead to
      * long-running loops.
      *
@@ -149,7 +154,7 @@ public final class Retryable<R> implements Callable<Retryable.Outcome<R>> {
     }
 
     /**
-     * Sets the base delay that is applied before scheduling the next attempt.
+     * Sets the base delay applied before scheduling the next attempt.
      * <p>
      * Any {@link TimeUnit} can be supplied. The value is internally converted to
      * milliseconds. No upper bound is enforced, so passing large values (for
@@ -290,7 +295,7 @@ public final class Retryable<R> implements Callable<Retryable.Outcome<R>> {
                     return Long.MAX_VALUE;
                 return base * multiplier;
             }
-        };
+        }
     }
 
     private static final class MaxRetriesExceededException extends Exception {

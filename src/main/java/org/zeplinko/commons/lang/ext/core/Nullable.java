@@ -16,6 +16,8 @@ import java.util.stream.Stream;
  * is present, {@code isNull()} will return {@code false} and {@code unwrap()}
  * will return the value.
  *
+ * @author Shivam&nbsp;Nagpal
+ *
  * @param <T> the type of value
  */
 @AllArgsConstructor(access = AccessLevel.PRIVATE)

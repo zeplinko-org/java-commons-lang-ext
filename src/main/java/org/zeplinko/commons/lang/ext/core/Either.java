@@ -7,6 +7,8 @@ import java.util.function.Function;
  * {@code Either} can contain a value of type {@code L} (left) or type {@code R}
  * (right), but not both simultaneously.
  *
+ * @author Astha&nbsp;Singh
+ *
  * @param <L> The type of the left value.
  * @param <R> The type of the right value.
  */
