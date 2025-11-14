@@ -11,6 +11,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.Callable;
+import java.util.function.Predicate;
 import java.util.stream.Stream;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -320,7 +321,6 @@ class TryTest {
     @Test
     void test_givenNullMapper_whenRecoverIsCalled_thenExceptionIsThrown() {
         Try<Integer> failure = Try.failure(new RuntimeException("error"));
-
         @SuppressWarnings("DataFlowIssue")
         NullPointerException nullPointerException = assertThrows(
                 NullPointerException.class,
@@ -346,6 +346,118 @@ class TryTest {
 
         assertTrue(result.isSuccess());
         assertEquals("data", result.getData());
+    }
+
+    @Test
+    void test_givenNullMapper_whenPredicateRecoverIsCalled_thenExceptionIsThrown() {
+        Try<String> failure = Try.failure(new RuntimeException("error"));
+        @SuppressWarnings("DataFlowIssue")
+        NullPointerException nullPointerException = assertThrows(
+                NullPointerException.class,
+                () -> failure.recover((Predicate<? super Exception>) IllegalArgumentException.class::isInstance, null)
+        );
+        assertNotNull(nullPointerException);
+    }
+
+    @Test
+    void test_givenNullPredicate_whenPredicateRecoverIsCalled_thenExceptionIsThrown() {
+        Try<String> failure = Try.failure(new RuntimeException("error"));
+        @SuppressWarnings("DataFlowIssue")
+        NullPointerException nullPointerException = assertThrows(
+                NullPointerException.class,
+                () -> failure.recover((Predicate<? super Exception>) null, e -> Try.success("ignored"))
+        );
+        assertNotNull(nullPointerException);
+    }
+
+    @Test
+    void test_givenSuccess_whenPredicateRecoverIsCalled_thenSameSuccessIsReturned() {
+        Try<String> success = Try.success("data");
+        Try<String> result = success.recover(IllegalArgumentException.class::isInstance, e -> Try.success("ignored"));
+
+        assertTrue(result.isSuccess());
+        assertEquals("data", result.getData());
+    }
+
+    @Test
+    void test_givenFailureWhichDoesNotSatisfyThePredicate_whenPredicateRecoverIsCalled_thenSameTryIsReturned() {
+        Exception error = new RuntimeException("error");
+        Try<String> failure = Try.failure(error);
+        Try<String> result = failure.recover(IllegalArgumentException.class::isInstance, e -> Try.success("recovered"));
+
+        assertTrue(result.isFailure());
+        assertSame(error, result.getError());
+    }
+
+    @Test
+    void test_givenFailureWhichSatisfiesThePredicate_whenPredicateRecoverIsCalled_thenSameTryIsReturned() {
+        Exception error = new IllegalArgumentException("error");
+        Try<String> failure = Try.failure(error);
+        Try<String> result = failure.recover(IllegalArgumentException.class::isInstance, e -> Try.success("recovered"));
+
+        assertTrue(result.isSuccess());
+        assertEquals("recovered", result.getData());
+    }
+
+    @Test
+    void test_givenNullExceptionType_whenRecoverWithExceptionTypeIsCalled_thenExceptionIsThrown() {
+        Try<Integer> failure = Try.failure(new RuntimeException("error"));
+        @SuppressWarnings("DataFlowIssue")
+        NullPointerException nullPointerException = assertThrows(
+                NullPointerException.class,
+                () -> failure.recover((Class<Exception>) null, e -> Try.success(0))
+        );
+        assertNotNull(nullPointerException);
+    }
+
+    @Test
+    void test_givenSuccess_whenRecoverWithExceptionTypeIsCalled_thenSameSuccessIsReturned() {
+        Try<String> success = Try.success("data");
+        Try<String> result = success.recover(RuntimeException.class, e -> Try.success("recovered"));
+
+        assertTrue(result.isSuccess());
+        assertEquals("data", result.getData());
+    }
+
+    @Test
+    void test_givenFailureWithNonMatchingException_whenRecoverWithExceptionTypeIsCalled_thenSameFailureIsReturned() {
+        Exception error = new IllegalArgumentException("error");
+        Try<String> failure = Try.failure(error);
+        Try<String> result = failure.recover(IllegalStateException.class, e -> Try.success("recovered"));
+
+        assertTrue(result.isFailure());
+        assertSame(error, result.getError());
+    }
+
+    @Test
+    void test_givenFailureWithMatchingException_whenRecoverWithExceptionTypeIsCalled_thenRecoveredTryIsReturned() {
+        Exception error = new IllegalArgumentException("error");
+        Try<String> failure = Try.failure(error);
+        Try<String> result = failure.recover(IllegalArgumentException.class, e -> Try.success("recovered"));
+
+        assertTrue(result.isSuccess());
+        assertEquals("recovered", result.getData());
+    }
+
+    @Test
+    void test_givenFailureWithMatchingExceptionSubclass_whenRecoverWithExceptionTypeIsCalled_thenRecoveredTryIsReturned() {
+        Exception error = new IllegalArgumentException("error");
+        Try<String> failure = Try.failure(error);
+        Try<String> result = failure.recover(RuntimeException.class, e -> Try.success("recovered"));
+
+        assertTrue(result.isSuccess());
+        assertEquals("recovered", result.getData());
+    }
+
+    @Test
+    void test_givenFailureWithMatchingException_whenRecoverWithExceptionTypeReturnsFailure_thenNewFailureIsReturned() {
+        Exception originalError = new IllegalArgumentException("original");
+        Exception newError = new IllegalStateException("new error");
+        Try<String> failure = Try.failure(originalError);
+        Try<String> result = failure.recover(IllegalArgumentException.class, e -> Try.failure(newError));
+
+        assertTrue(result.isFailure());
+        assertSame(newError, result.getError());
     }
 
     @Test
@@ -440,13 +552,375 @@ class TryTest {
     }
 
     @Test
-    void test_givenSuccess_whenOnFailureIsCalled_thenConsumerIsExecuted() {
+    void test_givenSuccess_whenOnFailureIsCalled_thenConsumerIsNotExecuted() {
         Try<String> success = Try.success("data");
         StringBuilder consumed = new StringBuilder();
         Try<String> returnedTry = success.onFailure(e -> consumed.append(e.getMessage()));
 
         assertSame(success, returnedTry);
         assertEquals(0, consumed.length());
+    }
+
+    @Test
+    void test_givenNullPredicate_whenPredicateOnFailureIsCalled_thenThrowsException() {
+        Try<String> failure = Try.failure(new RuntimeException("error"));
+        StringBuilder consumed = new StringBuilder();
+        Assertions.assertThrows(
+                NullPointerException.class,
+                () -> failure.onFailure((Predicate<? super Exception>) null, e -> consumed.append(e.getMessage()))
+        );
+        assertEquals(0, consumed.length());
+    }
+
+    @Test
+    void test_givenSuccess_whenPredicateOnFailureIsCalled_thenConsumerIsNotExecuted() {
+        Try<String> success = Try.success("data");
+        StringBuilder consumed = new StringBuilder();
+        Try<String> returnedTry = success
+                .onFailure(IllegalArgumentException.class::isInstance, e -> consumed.append(e.getMessage()));
+
+        assertSame(success, returnedTry);
+        assertEquals(0, consumed.length());
+    }
+
+    @Test
+    void test_givenFailureWhichDoesNotSatisfyPredicate_whenPredicateOnFailureIsCalled_thenConsumerIsNotExecuted() {
+        Exception error = new RuntimeException("error");
+        Try<String> failure = Try.failure(error);
+        StringBuilder consumed = new StringBuilder();
+        Try<String> returnedTry = failure
+                .onFailure(IllegalArgumentException.class::isInstance, e -> consumed.append(e.getMessage()));
+
+        assertSame(failure, returnedTry);
+        assertEquals(0, consumed.length());
+    }
+
+    @Test
+    void test_givenFailureWhichSatisfiesPredicate_whenPredicateOnFailureIsCalled_thenConsumerIsExecuted() {
+        Exception error = new IllegalArgumentException("error");
+        Try<String> failure = Try.failure(error);
+        StringBuilder consumed = new StringBuilder();
+        Try<String> returnedTry = failure
+                .onFailure(IllegalArgumentException.class::isInstance, e -> consumed.append(e.getMessage()));
+
+        assertSame(failure, returnedTry);
+        assertEquals("error", consumed.toString());
+    }
+
+    // ========== Tests for single exception type onFailure method ==========
+
+    @Test
+    void test_givenNullExceptionType_whenOnFailureWithExceptionTypeIsCalled_thenExceptionIsThrown() {
+        Try<Integer> failure = Try.failure(new RuntimeException("error"));
+        @SuppressWarnings("DataFlowIssue")
+        NullPointerException nullPointerException = assertThrows(
+                NullPointerException.class,
+                () -> failure.onFailure((Class<Exception>) null, e -> {
+                })
+        );
+        assertNotNull(nullPointerException);
+    }
+
+    @Test
+    void test_givenSuccess_whenOnFailureWithExceptionTypeIsCalled_thenConsumerIsNotExecuted() {
+        Try<String> success = Try.success("data");
+        StringBuilder consumed = new StringBuilder();
+        Try<String> returnedTry = success.onFailure(RuntimeException.class, e -> consumed.append(e.getMessage()));
+
+        assertSame(success, returnedTry);
+        assertEquals(0, consumed.length());
+    }
+
+    @Test
+    void test_givenFailureWithNonMatchingException_whenOnFailureWithExceptionTypeIsCalled_thenConsumerIsNotExecuted() {
+        Exception error = new IllegalArgumentException("error");
+        Try<String> failure = Try.failure(error);
+        StringBuilder consumed = new StringBuilder();
+        Try<String> returnedTry = failure.onFailure(IllegalStateException.class, e -> consumed.append(e.getMessage()));
+
+        assertSame(failure, returnedTry);
+        assertEquals(0, consumed.length());
+    }
+
+    @Test
+    void test_givenFailureWithMatchingException_whenOnFailureWithExceptionTypeIsCalled_thenConsumerIsExecuted() {
+        Exception error = new IllegalArgumentException("error");
+        Try<String> failure = Try.failure(error);
+        StringBuilder consumed = new StringBuilder();
+        Try<String> returnedTry = failure
+                .onFailure(IllegalArgumentException.class, e -> consumed.append(e.getMessage()));
+
+        assertSame(failure, returnedTry);
+        assertEquals("error", consumed.toString());
+    }
+
+    @Test
+    void test_givenFailureWithMatchingExceptionSubclass_whenOnFailureWithExceptionTypeIsCalled_thenConsumerIsExecuted() {
+        Exception error = new IllegalArgumentException("error");
+        Try<String> failure = Try.failure(error);
+        StringBuilder consumed = new StringBuilder();
+        Try<String> returnedTry = failure.onFailure(RuntimeException.class, e -> consumed.append(e.getMessage()));
+
+        assertSame(failure, returnedTry);
+        assertEquals("error", consumed.toString());
+    }
+
+    @Test
+    void test_givenChainedOnFailureCallsWithDifferentTypes_whenFailureMatches_thenOnlyMatchingConsumerIsExecuted() {
+        Exception error = new IllegalArgumentException("validation error");
+        Try<String> failure = Try.failure(error);
+        List<String> log = new ArrayList<>();
+
+        Try<String> result = failure
+                .onFailure(IllegalStateException.class, e -> log.add("state error"))
+                .onFailure(IllegalArgumentException.class, e -> log.add("argument error"))
+                .onFailure(NullPointerException.class, e -> log.add("null error"));
+
+        assertSame(failure, result);
+        assertEquals(1, log.size());
+        assertEquals("argument error", log.get(0));
+    }
+
+    @Test
+    void test_givenChainedOnFailureWithCatchAll_whenFailureOccurs_thenAllMatchingConsumersAreExecuted() {
+        Exception error = new IllegalArgumentException("error");
+        Try<String> failure = Try.failure(error);
+        List<String> log = new ArrayList<>();
+
+        Try<String> result = failure
+                .onFailure(IllegalArgumentException.class, e -> log.add("specific"))
+                .onFailure(RuntimeException.class, e -> log.add("general"))
+                .onFailure(e -> log.add("catch-all"));
+
+        assertSame(failure, result);
+        assertEquals(3, log.size());
+        assertEquals("specific", log.get(0));
+        assertEquals("general", log.get(1));
+        assertEquals("catch-all", log.get(2));
+    }
+
+    // ========== Tests for varargs exception types onFailure method ==========
+
+    @Test
+    void test_givenNullExceptionTypesArray_whenOnFailureWithVarargsIsCalled_thenExceptionIsThrown() {
+        Try<Integer> failure = Try.failure(new RuntimeException("error"));
+        @SuppressWarnings({ "DataFlowIssue", "unchecked" })
+        NullPointerException nullPointerException = assertThrows(
+                NullPointerException.class,
+                () -> failure.onFailure(e -> {
+                }, (Class<? extends Exception>[]) null)
+        );
+        assertNotNull(nullPointerException);
+    }
+
+    @Test
+    void test_givenSuccess_whenOnFailureWithVarargsIsCalled_thenConsumerIsNotExecuted() {
+        Try<String> success = Try.success("data");
+        StringBuilder consumed = new StringBuilder();
+        Try<String> returnedTry = success.onFailure(
+                e -> consumed.append(e.getMessage()),
+                RuntimeException.class,
+                IllegalArgumentException.class
+        );
+
+        assertSame(success, returnedTry);
+        assertEquals(0, consumed.length());
+    }
+
+    @Test
+    void test_givenFailureWithNoMatchingException_whenOnFailureWithVarargsIsCalled_thenConsumerIsNotExecuted() {
+        Exception error = new IllegalArgumentException("error");
+        Try<String> failure = Try.failure(error);
+        StringBuilder consumed = new StringBuilder();
+        Try<String> returnedTry = failure.onFailure(
+                e -> consumed.append(e.getMessage()),
+                IllegalStateException.class,
+                NullPointerException.class
+        );
+
+        assertSame(failure, returnedTry);
+        assertEquals(0, consumed.length());
+    }
+
+    @Test
+    void test_givenFailureWithEmptyVarargsArray_whenOnFailureWithVarargsIsCalled_thenConsumerIsNotExecuted() {
+        Exception error = new RuntimeException("error");
+        Try<String> failure = Try.failure(error);
+        StringBuilder consumed = new StringBuilder();
+        Try<String> returnedTry = failure.onFailure(
+                e -> consumed.append(e.getMessage()),
+                new Class[0]
+        );
+
+        assertSame(failure, returnedTry);
+        assertEquals(0, consumed.length());
+    }
+
+    @Test
+    void test_givenFailureWithSingleMatchingException_whenOnFailureWithVarargsIsCalled_thenConsumerIsExecuted() {
+        Exception error = new IllegalArgumentException("error");
+        Try<String> failure = Try.failure(error);
+        StringBuilder consumed = new StringBuilder();
+        Try<String> returnedTry = failure.onFailure(
+                e -> consumed.append(e.getMessage()),
+                IllegalArgumentException.class
+        );
+
+        assertSame(failure, returnedTry);
+        assertEquals("error", consumed.toString());
+    }
+
+    @Test
+    void test_givenFailureWithFirstMatchingException_whenOnFailureWithVarargsIsCalled_thenConsumerIsExecuted() {
+        Exception error = new IllegalArgumentException("error");
+        Try<String> failure = Try.failure(error);
+        StringBuilder consumed = new StringBuilder();
+        Try<String> returnedTry = failure.onFailure(
+                e -> consumed.append(e.getMessage()),
+                IllegalArgumentException.class,
+                IllegalStateException.class,
+                NullPointerException.class
+        );
+
+        assertSame(failure, returnedTry);
+        assertEquals("error", consumed.toString());
+    }
+
+    @Test
+    void test_givenFailureWithSecondMatchingException_whenOnFailureWithVarargsIsCalled_thenConsumerIsExecuted() {
+        Exception error = new IllegalStateException("error");
+        Try<String> failure = Try.failure(error);
+        StringBuilder consumed = new StringBuilder();
+        Try<String> returnedTry = failure.onFailure(
+                e -> consumed.append(e.getMessage()),
+                IllegalArgumentException.class,
+                IllegalStateException.class,
+                NullPointerException.class
+        );
+
+        assertSame(failure, returnedTry);
+        assertEquals("error", consumed.toString());
+    }
+
+    @Test
+    void test_givenFailureWithLastMatchingException_whenOnFailureWithVarargsIsCalled_thenConsumerIsExecuted() {
+        Exception error = new NullPointerException("error");
+        Try<String> failure = Try.failure(error);
+        StringBuilder consumed = new StringBuilder();
+        Try<String> returnedTry = failure.onFailure(
+                e -> consumed.append(e.getMessage()),
+                IllegalArgumentException.class,
+                IllegalStateException.class,
+                NullPointerException.class
+        );
+
+        assertSame(failure, returnedTry);
+        assertEquals("error", consumed.toString());
+    }
+
+    @Test
+    void test_givenFailureWithMatchingExceptionSubclass_whenOnFailureWithVarargsIsCalled_thenConsumerIsExecuted() {
+        Exception error = new IllegalArgumentException("error");
+        Try<String> failure = Try.failure(error);
+        StringBuilder consumed = new StringBuilder();
+        Try<String> returnedTry = failure.onFailure(
+                e -> consumed.append(e.getMessage()),
+                RuntimeException.class,
+                Exception.class
+        );
+
+        assertSame(failure, returnedTry);
+        assertEquals("error", consumed.toString());
+    }
+
+    @Test
+    void test_givenFailureAndNullExceptionTypesInVarargs_whenOnFailureWithVarargsIsCalled_thenNullsAreIgnored() {
+        Exception error = new IllegalArgumentException("error");
+        Try<String> failure = Try.failure(error);
+        StringBuilder consumed = new StringBuilder();
+        @SuppressWarnings("unchecked")
+        Try<String> returnedTry = failure.onFailure(
+                e -> consumed.append(e.getMessage()),
+                null,
+                IllegalArgumentException.class,
+                null
+        );
+
+        assertSame(failure, returnedTry);
+        assertEquals("error", consumed.toString());
+    }
+
+    @Test
+    void test_givenFailureAndAllNullExceptionTypesInVarargs_whenOnFailureWithVarargsIsCalled_thenConsumerIsNotExecuted() {
+        Exception error = new IllegalArgumentException("error");
+        Try<String> failure = Try.failure(error);
+        StringBuilder consumed = new StringBuilder();
+        @SuppressWarnings("unchecked")
+        Try<String> returnedTry = failure.onFailure(
+                e -> consumed.append(e.getMessage()),
+                null,
+                null
+        );
+
+        assertSame(failure, returnedTry);
+        assertEquals(0, consumed.length());
+    }
+
+    @Test
+    void test_givenMultipleIOExceptions_whenOnFailureWithVarargsIsCalled_thenSingleHandlerIsExecuted() {
+        Exception error = new java.io.FileNotFoundException("file not found");
+        Try<String> failure = Try.failure(error);
+        List<String> log = new ArrayList<>();
+        Try<String> returnedTry = failure.onFailure(
+                e -> log.add("I/O error: " + e.getMessage()),
+                java.io.IOException.class,
+                java.io.FileNotFoundException.class,
+                java.net.SocketTimeoutException.class
+        );
+
+        assertSame(failure, returnedTry);
+        assertEquals(1, log.size());
+        assertEquals("I/O error: file not found", log.get(0));
+    }
+
+    @Test
+    void test_givenChainedOnFailureCallsWithVarargs_whenDifferentExceptionGroups_thenCorrectHandlerIsExecuted() {
+        Exception error = new IllegalArgumentException("validation error");
+        Try<String> failure = Try.failure(error);
+        List<String> log = new ArrayList<>();
+
+        Try<String> result = failure
+                .onFailure(
+                        e -> log.add("io"),
+                        java.io.IOException.class,
+                        java.util.concurrent.TimeoutException.class
+                )
+                .onFailure(
+                        e -> log.add("validation"),
+                        IllegalArgumentException.class,
+                        IllegalStateException.class
+                );
+
+        assertSame(failure, result);
+        assertEquals(1, log.size());
+        assertEquals("validation", log.get(0));
+    }
+
+    @Test
+    void test_givenRealWorldLoggingScenario_whenOnFailureWithMultipleTypes_thenCorrectLoggingOccurs() {
+        Exception error = new java.io.IOException("network error");
+        Try<String> failure = Try.failure(error);
+        List<String> logMessages = new ArrayList<>();
+
+        Try<String> result = failure
+                .onFailure(java.io.IOException.class, e -> logMessages.add("ERROR: " + e.getMessage()))
+                .onFailure(java.util.concurrent.TimeoutException.class, e -> logMessages.add("WARN: " + e.getMessage()))
+                .onFailure(e -> logMessages.add("UNKNOWN: " + e.getMessage()));
+
+        assertSame(failure, result);
+        assertEquals(2, logMessages.size());
+        assertEquals("ERROR: network error", logMessages.get(0));
+        assertEquals("UNKNOWN: network error", logMessages.get(1));
     }
 
     @Test
@@ -466,6 +940,224 @@ class TryTest {
 
         assertTrue(result.isFailure());
         assertSame(error, result.getError());
+    }
+
+    // ========== Tests for varargs recover method ==========
+
+    @Test
+    void test_givenNullFailureMapper_whenRecoverWithVarargsIsCalled_thenExceptionIsThrown() {
+        Try<Integer> failure = Try.failure(new RuntimeException("error"));
+        @SuppressWarnings("DataFlowIssue")
+        NullPointerException nullPointerException = assertThrows(
+                NullPointerException.class,
+                () -> failure.recover(null, RuntimeException.class, IllegalArgumentException.class)
+        );
+        assertNotNull(nullPointerException);
+    }
+
+    @Test
+    void test_givenNullExceptionTypesArray_whenRecoverWithVarargsIsCalled_thenExceptionIsThrown() {
+        Try<Integer> failure = Try.failure(new RuntimeException("error"));
+        @SuppressWarnings({ "DataFlowIssue", "unchecked" })
+        NullPointerException nullPointerException = assertThrows(
+                NullPointerException.class,
+                () -> failure.recover(e -> Try.success(0), (Class<? extends Exception>[]) null)
+        );
+        assertNotNull(nullPointerException);
+    }
+
+    @Test
+    void test_givenSuccess_whenRecoverWithVarargsIsCalled_thenSameSuccessIsReturned() {
+        Try<String> success = Try.success("data");
+        Try<String> result = success.recover(
+                e -> Try.success("recovered"),
+                RuntimeException.class,
+                IllegalArgumentException.class
+        );
+
+        assertTrue(result.isSuccess());
+        assertEquals("data", result.getData());
+    }
+
+    @Test
+    void test_givenFailureWithNoMatchingException_whenRecoverWithVarargsIsCalled_thenSameFailureIsReturned() {
+        Exception error = new IllegalArgumentException("error");
+        Try<String> failure = Try.failure(error);
+        Try<String> result = failure.recover(
+                e -> Try.success("recovered"),
+                IllegalStateException.class,
+                NullPointerException.class
+        );
+
+        assertTrue(result.isFailure());
+        assertSame(error, result.getError());
+    }
+
+    @Test
+    void test_givenFailureWithEmptyVarargsArray_whenRecoverWithVarargsIsCalled_thenSameFailureIsReturned() {
+        Exception error = new RuntimeException("error");
+        Try<String> failure = Try.failure(error);
+        @SuppressWarnings("unchecked")
+        Try<String> result = failure.recover(
+                e -> Try.success("recovered"),
+                new Class[0] // Explicitly pass empty array to call varargs version
+        );
+
+        assertTrue(result.isFailure());
+        assertSame(error, result.getError());
+    }
+
+    @Test
+    void test_givenFailureWithSingleMatchingException_whenRecoverWithVarargsIsCalled_thenRecoveredTryIsReturned() {
+        Exception error = new IllegalArgumentException("error");
+        Try<String> failure = Try.failure(error);
+        Try<String> result = failure.recover(
+                e -> Try.success("recovered"),
+                IllegalArgumentException.class
+        );
+
+        assertTrue(result.isSuccess());
+        assertEquals("recovered", result.getData());
+    }
+
+    @Test
+    void test_givenFailureWithFirstMatchingException_whenRecoverWithVarargsIsCalled_thenRecoveredTryIsReturned() {
+        Exception error = new IllegalArgumentException("error");
+        Try<String> failure = Try.failure(error);
+        Try<String> result = failure.recover(
+                e -> Try.success("recovered"),
+                IllegalArgumentException.class,
+                IllegalStateException.class,
+                NullPointerException.class
+        );
+
+        assertTrue(result.isSuccess());
+        assertEquals("recovered", result.getData());
+    }
+
+    @Test
+    void test_givenFailureWithSecondMatchingException_whenRecoverWithVarargsIsCalled_thenRecoveredTryIsReturned() {
+        Exception error = new IllegalStateException("error");
+        Try<String> failure = Try.failure(error);
+        Try<String> result = failure.recover(
+                e -> Try.success("recovered"),
+                IllegalArgumentException.class,
+                IllegalStateException.class,
+                NullPointerException.class
+        );
+
+        assertTrue(result.isSuccess());
+        assertEquals("recovered", result.getData());
+    }
+
+    @Test
+    void test_givenFailureWithLastMatchingException_whenRecoverWithVarargsIsCalled_thenRecoveredTryIsReturned() {
+        Exception error = new NullPointerException("error");
+        Try<String> failure = Try.failure(error);
+        Try<String> result = failure.recover(
+                e -> Try.success("recovered"),
+                IllegalArgumentException.class,
+                IllegalStateException.class,
+                NullPointerException.class
+        );
+
+        assertTrue(result.isSuccess());
+        assertEquals("recovered", result.getData());
+    }
+
+    @Test
+    void test_givenFailureWithMatchingExceptionSubclass_whenRecoverWithVarargsIsCalled_thenRecoveredTryIsReturned() {
+        Exception error = new IllegalArgumentException("error");
+        Try<String> failure = Try.failure(error);
+        Try<String> result = failure.recover(
+                e -> Try.success("recovered"),
+                RuntimeException.class,
+                Exception.class
+        );
+
+        assertTrue(result.isSuccess());
+        assertEquals("recovered", result.getData());
+    }
+
+    @Test
+    void test_givenFailureWithMatchingException_whenRecoverWithVarargsReturnsFailure_thenNewFailureIsReturned() {
+        Exception originalError = new IllegalArgumentException("original");
+        Exception newError = new IllegalStateException("new error");
+        Try<String> failure = Try.failure(originalError);
+        Try<String> result = failure.recover(
+                e -> Try.failure(newError),
+                IllegalArgumentException.class,
+                NullPointerException.class
+        );
+
+        assertTrue(result.isFailure());
+        assertSame(newError, result.getError());
+    }
+
+    @Test
+    void test_givenFailureAndNullExceptionTypesInVarargs_whenRecoverWithVarargsIsCalled_thenNullsAreIgnored() {
+        Exception error = new IllegalArgumentException("error");
+        Try<String> failure = Try.failure(error);
+        @SuppressWarnings("unchecked")
+        Try<String> result = failure.recover(
+                e -> Try.success("recovered"),
+                null,
+                IllegalArgumentException.class,
+                null
+        );
+
+        assertTrue(result.isSuccess());
+        assertEquals("recovered", result.getData());
+    }
+
+    @Test
+    void test_givenFailureAndAllNullExceptionTypesInVarargs_whenRecoverWithVarargsIsCalled_thenSameFailureIsReturned() {
+        Exception error = new IllegalArgumentException("error");
+        Try<String> failure = Try.failure(error);
+        @SuppressWarnings("unchecked")
+        Try<String> result = failure.recover(
+                e -> Try.success("recovered"),
+                null,
+                null
+        );
+
+        assertTrue(result.isFailure());
+        assertSame(error, result.getError());
+    }
+
+    @Test
+    void test_givenMultipleIOExceptions_whenRecoverWithVarargsIsCalled_thenSingleHandlerIsApplied() {
+        Exception error = new java.io.FileNotFoundException("file not found");
+        Try<String> failure = Try.failure(error);
+        Try<String> result = failure.recover(
+                e -> Try.success("default content"),
+                java.io.IOException.class,
+                java.io.FileNotFoundException.class,
+                java.net.SocketTimeoutException.class
+        );
+
+        assertTrue(result.isSuccess());
+        assertEquals("default content", result.getData());
+    }
+
+    @Test
+    void test_givenChainedRecoverCallsWithVarargs_whenDifferentExceptionGroups_thenCorrectHandlerIsApplied() {
+        Exception error = new IllegalArgumentException("validation error");
+        Try<String> failure = Try.failure(error);
+        Try<String> result = failure
+                .recover(
+                        e -> Try.success("io recovered"),
+                        java.io.IOException.class,
+                        java.util.concurrent.TimeoutException.class
+                )
+                .recover(
+                        e -> Try.success("validation recovered"),
+                        IllegalArgumentException.class,
+                        IllegalStateException.class
+                );
+
+        assertTrue(result.isSuccess());
+        assertEquals("validation recovered", result.getData());
     }
 
     @MethodSource("provideHashcodeCoverageCases")
